@@ -1,0 +1,159 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [ published ]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: [3.7, 3.8, 3.9, '3.10', '3.11']
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-cov
+
+    - name: Create test directories
+      run: |
+        mkdir -p test_input test_output
+
+    - name: Create sample test data
+      run: |
+        python -c "
+        import pandas as pd
+        import os
+        
+        # Create sample CSV data for testing
+        sample_data = {
+            'profile_name': ['Airport A'] * 50 + ['Airport B'] * 50,
+            'score': [1, 2, 3, 4, 5] * 20,
+            'comment': ['Test comment ' + str(i) for i in range(100)],
+            'language': ['en'] * 40 + ['tr'] * 30 + ['de'] * 30,
+            'contribution': ['Test contribution'] * 100,
+            'date': ['2024-01-01'] * 100,
+            'url': ['https://test.com'] * 100
+        }
+        
+        df = pd.DataFrame(sample_data)
+        os.makedirs('test_input', exist_ok=True)
+        df.to_csv('test_input/test_data.csv', index=False)
+        print('Sample test data created')
+        "
+
+    - name: Test basic functionality
+      run: |
+        python -c "
+        from smart_mix_split import SmartMixSplit
+        
+        # Test basic functionality
+        mixer = SmartMixSplit('test_input', 'test_output')
+        data = mixer.read_csv_files()
+        print(f'Data shape: {data.shape}')
+        
+        analysis = mixer.analyze_data()
+        print(f'Analysis completed: {analysis[\"total_rows\"]} rows')
+        
+        # Test sampling
+        sample = mixer.create_balanced_sample({5: 5, 4: 5, 3: 5, 2: 3, 1: 2})
+        print(f'Sample shape: {sample.shape}')
+        
+        mixer.save_results(sample, 'test_sample.csv')
+        print('✅ All tests passed!')
+        "
+
+    - name: Test example usage
+      run: |
+        python example_usage.py
+
+    - name: Lint with flake8 (optional)
+      run: |
+        pip install flake8
+        # Stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Exit-zero treats all errors as warnings
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      continue-on-error: true
+
+  package:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install packaging tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine
+
+    - name: Build package
+      run: |
+        python -m build
+
+    - name: Check package
+      run: |
+        twine check dist/*
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: dist
+        path: dist/
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install bandit safety
+
+    - name: Run security checks with bandit
+      run: |
+        bandit -r . -f json -o bandit-report.json
+      continue-on-error: true
+
+    - name: Check dependencies with safety
+      run: |
+        safety check --json --output safety-report.json
+      continue-on-error: true
+
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
+          safety-report.json
+      if: always()
