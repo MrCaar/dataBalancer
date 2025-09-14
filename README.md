@@ -1,7 +1,7 @@
 # dataBalancer ⚖️
 
 [![CI/CD Pipeline](https://github.com/mrcaar/dataBalancer/workflows/CI/CD%20Pipeline/badge.svg)](https://github.com/mrcaar/dataBalancer/actions)
-[![Python Version](https://img.shields.io/badge/python-3.7%2B-blue.svg)](https://www.python.org/downloads/)
+[![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Issues](https://img.shields.io/github/issues/mrcaar/dataBalancer)](https://github.com/mrcaar/dataBalancer/issues)
 [![Stars](https://img.shields.io/github/stars/mrcaar/dataBalancer)](https://github.com/mrcaar/dataBalancer/stargazers)
@@ -489,7 +489,7 @@ Katkıda bulunanlar CHANGELOG.md'de recognition alırlar!
 
 ## 📚 Teknoloji Stack'i
 
-- **Python 3.7+**: Ana programlama dili, modern features
+- **Python 3.8+**: Ana programlama dili, modern features
 - **Pandas**: Veri manipülasyonu ve analizi, high-performance
 - **NumPy**: Sayısal hesaplamalar ve random sampling
 - **CSV**: Veri input/output formatı, universal support
