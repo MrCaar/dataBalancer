@@ -76,20 +76,20 @@ jobs:
         
         mixer = SmartMixSplit('test_input', 'test_output')
         data = mixer.read_csv_files()
-        print(f'✅ Data loaded successfully: {data.shape}')
+        print('SUCCESS: Data loaded successfully - Shape:', data.shape)
         
         analysis = mixer.analyze_data()
-        print(f'✅ Analysis completed: {analysis[\"total_rows\"]} rows')
+        print('SUCCESS: Analysis completed - Rows:', analysis['total_rows'])
         
         # Test sampling
         sample = mixer.create_balanced_sample({5: 5, 4: 5, 3: 5, 2: 3, 1: 2})
-        print(f'✅ Sampling completed: {sample.shape}')
+        print('SUCCESS: Sampling completed - Shape:', sample.shape)
         
         mixer.save_results(sample, 'test_sample.csv')
         
         # Verify output file was created
         assert os.path.exists('test_output/test_sample.csv'), 'Output file not created'
-        print('✅ All basic tests passed!')
+        print('SUCCESS: All basic tests passed!')
         "
 
     - name: Test example usage (non-interactive)
@@ -98,7 +98,7 @@ jobs:
         import os
         from smart_mix_split import SmartMixSplit
         
-        print('🧪 Testing example usage scenarios...')
+        print('Testing example usage scenarios...')
         
         mixer = SmartMixSplit('test_input', 'test_output')
         data = mixer.read_csv_files()
@@ -121,12 +121,12 @@ jobs:
                 output_path = os.path.join('test_output', filename)
                 assert os.path.exists(output_path), f'Output file {filename} not created'
                 
-                print(f'✅ Test case {i} ({test_case[\"name\"]}) completed successfully')
+                print(f'SUCCESS: Test case {i} ({test_case[\"name\"]}) completed successfully')
             except Exception as e:
-                print(f'❌ Test case {i} failed: {e}')
+                print(f'ERROR: Test case {i} failed: {e}')
                 raise
         
-        print('✅ All example tests passed!')
+        print('SUCCESS: All example tests passed!')
         "
 
     - name: Lint with flake8 (optional)
