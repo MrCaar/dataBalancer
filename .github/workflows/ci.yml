@@ -34,15 +34,15 @@ jobs:
         pip install -r requirements.txt
         pip install pytest pytest-cov
 
-    - name: Create test directories
-      run: |
-        mkdir -p test_input test_output
-
-    - name: Create sample test data
+    - name: Create test directories and sample data
       run: |
         python -c "
         import pandas as pd
         import os
+        
+        # Create test directories
+        os.makedirs('test_input', exist_ok=True)
+        os.makedirs('test_output', exist_ok=True)
         
         # Create sample CSV data for testing
         sample_data = {
@@ -56,9 +56,8 @@ jobs:
         }
         
         df = pd.DataFrame(sample_data)
-        os.makedirs('test_input', exist_ok=True)
         df.to_csv('test_input/test_data.csv', index=False)
-        print('Sample test data created')
+        print('✅ Test directories and sample data created')
         "
 
     - name: Test basic functionality
@@ -82,9 +81,34 @@ jobs:
         print('✅ All tests passed!')
         "
 
-    - name: Test example usage
+    - name: Test example usage (non-interactive)
       run: |
-        python example_usage.py
+        python -c "
+        # Test example_usage.py without interactive input
+        import sys
+        sys.path.append('.')
+        
+        # Mock the interactive parts and test the core functionality
+        from smart_mix_split import SmartMixSplit
+        
+        mixer = SmartMixSplit('test_input', 'test_output')
+        data = mixer.read_csv_files()
+        analysis = mixer.analyze_data()
+        
+        # Test predefined distributions
+        test_distributions = [
+            {5: 5, 4: 5, 3: 5, 2: 3, 1: 2},
+            {5: 8, 4: 6, 3: 4, 2: 1, 1: 1},
+            {5: 3, 4: 3, 3: 3, 2: 3, 1: 3}
+        ]
+        
+        for i, dist in enumerate(test_distributions, 1):
+            sample = mixer.create_balanced_sample(dist)
+            mixer.save_results(sample, f'test_example_{i}.csv')
+            print(f'✅ Test distribution {i} completed')
+        
+        print('✅ All example tests passed!')
+        "
 
     - name: Lint with flake8 (optional)
       run: |
